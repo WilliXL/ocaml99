@@ -74,9 +74,28 @@ let rec compress = function
 (* 9. pack : 'a list -> 'a list list
 Pack consecutive dpulicates of list elements in sublists *)
 let rec pack list =
-    raise (TODO "Not Yet Implemented")
+    let rec aux dups curr = function
+        | [] -> dups::curr
+        | x::xs ->
+            match dups with
+                | [] -> aux [x] curr xs
+                | y::ys -> if x = y then aux (x::dups) curr xs
+                         else aux [x] (dups::curr) xs
+    in
+        List.rev (aux [] [] list)
 
-
+(* BIG BRAIN *)
+let rec pack_jerbear_BIG_BRAIN list =
+    let rec aux curr = function
+        | [] -> ([],[])
+        | x::xs ->
+            if x <> curr then ([],x::xs)
+            else let (dups,xs') = aux x xs in (x::dups, xs')
+    in
+        (* rev aux [] list *)
+        match list with
+        |    [] -> []
+        |   x::xs -> let (dups, xs') = aux x list in dups::(pack xs')
 
 
 
@@ -127,3 +146,6 @@ let () = Printf.printf "Question 7 - PASSED\n"
 let to_compress_list = ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"]
 let () = assert(compress to_compress_list = ["a"; "b"; "c"; "a"; "d"; "e"])
 let () = Printf.printf "Question 8 - PASSED\n"
+
+let () = assert(pack to_compress_list = [["a";"a";"a";"a"];["b"];["c";"c"];["a";"a"];["d"];["e";"e";"e";"e"]])
+let () = Printf.printf "Question 9 - PASSED\n"
