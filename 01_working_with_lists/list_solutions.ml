@@ -72,7 +72,7 @@ let rec compress = function
 
 
 (* 9. pack : 'a list -> 'a list list
-Pack consecutive dpulicates of list elements in sublists *)
+Pack consecutive dpulicates of list elements in sublists (medium) *)
 let rec pack list =
     let rec aux dups curr = function
         | [] -> dups::curr
@@ -80,12 +80,11 @@ let rec pack list =
             match dups with
                 | [] -> aux [x] curr xs
                 | y::ys -> if x = y then aux (x::dups) curr xs
-                         else aux [x] (dups::curr) xs
+                           else aux [x] (dups::curr) xs
     in
         List.rev (aux [] [] list)
 
-(* BIG BRAIN *)
-let rec pack_jerbear_BIG_BRAIN list =
+let rec pack' list =
     let rec aux curr = function
         | [] -> ([],[])
         | x::xs ->
@@ -94,8 +93,43 @@ let rec pack_jerbear_BIG_BRAIN list =
     in
         (* rev aux [] list *)
         match list with
-        |    [] -> []
-        |   x::xs -> let (dups, xs') = aux x list in dups::(pack xs')
+            | [] -> []
+            | x::xs -> let (dups, xs') = aux x list in dups::(pack' xs')
+
+
+(* 10. encode : 'a list -> (int * 'a) list
+Returns run-length encoding of a list (medium) *)
+let rec encode list =
+    let rec count cnt curr = function
+        | [] -> []
+        | [x] -> (cnt+1,x)::curr
+        | x::(y::ys) -> if x = y then count (cnt+1) curr (y::ys)
+                        else count 0 ((cnt+1,x)::curr) (y::ys)
+    in
+        List.rev (count 0 [] list)
+
+
+(* 11. encode' : 'a list -> 'a rle list
+Return run-length encoding of list using 'a rle type specified below (easy) *)
+(* The type definition is slightly changed to not overload with 'a node *)
+type 'a rle = | Single of 'a | Multiple of int * 'a
+
+let rec encode' list =
+    let rec count cnt curr = function
+        | [] -> []
+        | [x] -> (Multiple (cnt+1,x))::curr
+        | x::(y::ys) -> if x = y then count (cnt+1) curr (y::ys)
+                        else
+                        (
+                            if cnt = 0 then count 0 ((Single (x))::curr) (y::ys)
+                            else count 0 ((Multiple (cnt+1,x))::curr) (y::ys)
+                        )
+    in
+        List.rev (count 0 [] list)
+
+
+
+
 
 
 
@@ -149,3 +183,9 @@ let () = Printf.printf "Question 8 - PASSED\n"
 
 let () = assert(pack to_compress_list = [["a";"a";"a";"a"];["b"];["c";"c"];["a";"a"];["d"];["e";"e";"e";"e"]])
 let () = Printf.printf "Question 9 - PASSED\n"
+
+let () = assert(encode to_compress_list = [(4, "a"); (1, "b"); (2, "c"); (2, "a"); (1, "d"); (4, "e")])
+let () = Printf.printf "Question 10 - PASSED\n"
+
+let () = assert(encode' to_compress_list = [Multiple (4, "a"); Single "b"; Multiple (2, "c"); Multiple (2, "a"); Single "d"; Multiple (4, "e")])
+let () = Printf.printf "Question 11 - PASSED\n"
